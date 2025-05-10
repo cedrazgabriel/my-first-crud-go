@@ -1,6 +1,20 @@
 package model
 
-import "github.com/cedrazgabriel/my-first-crud-go/src/configuration/rest_err"
+import (
+	"crypto/md5"
+	"encoding/hex"
+
+	"github.com/cedrazgabriel/my-first-crud-go/src/configuration/rest_err"
+)
+
+func NewUserDomain(email, password, name string, age int8) UserDomainInterface {
+	return &userDomain{
+		Email:    email,
+		Password: password,
+		Name:     name,
+		Age:      age,
+	}
+}
 
 type userDomain struct {
 	Email    string
@@ -9,13 +23,16 @@ type userDomain struct {
 	Age      int8
 }
 
-type UserDomainInterface interface {
-	CreateUser(userDomain) *rest_err.RestErr
-	UpdateUser(string, userDomain) *rest_err.RestErr
-	FindUser(string) (*userDomain, *rest_err.RestErr)
-	DeleteUser(string) *rest_err.RestErr
+func (ud *userDomain) EncryptPassword() {
+	hash := md5.New()
+	defer hash.Reset()
+	hash.Write([]byte(ud.Password))
+	ud.Password = hex.EncodeToString(hash.Sum(nil))
 }
 
-func (ud *userDomain) CreateUser() *rest_err.RestErr {
-	return nil
+type UserDomainInterface interface {
+	CreateUser() *rest_err.RestErr
+	UpdateUser(string) *rest_err.RestErr
+	FindUser(string) (*userDomain, *rest_err.RestErr)
+	DeleteUser(string) *rest_err.RestErr
 }
